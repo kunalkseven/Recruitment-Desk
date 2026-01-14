@@ -1,0 +1,435 @@
+.container {
+    padding: var(--spacing-xl);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.headerLeft {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.backLink {
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.backLink:hover {
+    color: var(--primary);
+}
+
+.title {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.statusSelect {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+    cursor: pointer;
+}
+
+.statusBadge {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-size: var(--font-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.statusApplied {
+    background: rgba(156, 163, 175, 0.2);
+    color: #9ca3af;
+}
+
+.statusScreening {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.statusInterview {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+}
+
+.statusOffer {
+    background: rgba(249, 115, 22, 0.2);
+    color: #fb923c;
+}
+
+.statusHired {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.statusRejected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.statusOnHold {
+    background: rgba(234, 179, 8, 0.2);
+    color: #facc15;
+}
+
+/* Content Layout */
+.content {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: var(--spacing-xl);
+}
+
+@media (max-width: 1024px) {
+    .content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mainSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+/* Cards */
+.card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    backdrop-filter: blur(20px);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.cardTitle {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.cardHeader .cardTitle {
+    margin-bottom: 0;
+}
+
+.addButton {
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-xs);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.addButton:hover {
+    opacity: 0.9;
+}
+
+/* Info Grid */
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+@media (max-width: 640px) {
+    .infoGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.infoLabel {
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.infoValue {
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+}
+
+a.infoValue {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a.infoValue:hover {
+    text-decoration: underline;
+}
+
+/* Skills */
+.skillsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.skillTag {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-xs);
+    color: var(--text-primary);
+}
+
+/* Resume */
+.resumeLink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--surface-elevated);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.resumeLink:hover {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+/* Interviews */
+.interviewList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.interviewItem {
+    padding: var(--spacing-md);
+    background: var(--surface-elevated);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+}
+
+.interviewHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.interviewType {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.interviewResult {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-xs);
+    font-weight: 600;
+}
+
+.resultPass {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.resultFail {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.resultPending {
+    background: rgba(234, 179, 8, 0.2);
+    color: #facc15;
+}
+
+.resultNoShow {
+    background: rgba(156, 163, 175, 0.2);
+    color: #9ca3af;
+}
+
+.interviewMeta {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+}
+
+.interviewLocation {
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+}
+
+/* Recruiter Info */
+.recruiterInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.recruiterAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: var(--font-lg);
+}
+
+.recruiterName {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.recruiterEmail {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+}
+
+.recruiterDept {
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+}
+
+/* Notes */
+.addNoteForm {
+    margin-bottom: var(--spacing-md);
+}
+
+.noteInput {
+    width: 100%;
+    padding: var(--spacing-sm);
+    background: var(--surface-elevated);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+    resize: vertical;
+    margin-bottom: var(--spacing-sm);
+}
+
+.noteInput:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.addNoteButton {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.addNoteButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.notesList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.noteItem {
+    padding: var(--spacing-md);
+    background: var(--surface-elevated);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+}
+
+.noteHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.noteAuthor {
+    font-weight: 600;
+    font-size: var(--font-sm);
+    color: var(--text-primary);
+}
+
+.noteDate {
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+}
+
+.noteContent {
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.emptyState {
+    color: var(--text-tertiary);
+    font-size: var(--font-sm);
+    text-align: center;
+    padding: var(--spacing-lg);
+}
