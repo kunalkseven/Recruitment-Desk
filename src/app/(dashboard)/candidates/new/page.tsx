@@ -63,27 +63,14 @@ export default function NewCandidatePage() {
             const result = await response.json()
 
             if (!response.ok) {
-                throw new Error(result.error || 'Failed to parse resume')
+                throw new Error(result.error || 'Failed to upload resume')
             }
 
-            // Fill form with parsed data
-            const parsed: ParsedData = result.parsed
-            setFormData((prev) => ({
-                ...prev,
-                name: parsed.name || prev.name,
-                email: parsed.email || prev.email,
-                phone: parsed.phone || prev.phone,
-                skills: parsed.skills?.join(', ') || prev.skills,
-                experience: parsed.experience?.toString() || prev.experience,
-            }))
-
-            // Check for duplicates
-            if (result.duplicates && result.duplicates.length > 0) {
-                setDuplicates(result.duplicates)
-                setShowDuplicateModal(true)
-            }
+            // Resume uploaded successfully - no parsing, just store the file
+            // User will manually fill in the candidate details
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to parse resume')
+            setResumeFile(null)
+            setError(err instanceof Error ? err.message : 'Failed to upload resume')
         } finally {
             setParsing(false)
         }

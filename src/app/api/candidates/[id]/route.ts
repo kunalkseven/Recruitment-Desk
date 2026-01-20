@@ -99,6 +99,7 @@ export async function PUT(
                 skills: body.skills,
                 source: body.source,
                 status: body.status,
+                recruiterId: body.recruiterId,
             },
         })
 

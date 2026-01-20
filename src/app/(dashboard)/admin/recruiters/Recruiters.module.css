@@ -249,3 +249,29 @@
         grid-template-columns: 1fr;
     }
 }
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.iconButton {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-xs);
+    cursor: pointer;
+    font-size: var(--font-size-md);
+    transition: all var(--transition-fast);
+}
+
+.iconButton:hover {
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-primary);
+}
+
+.iconButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

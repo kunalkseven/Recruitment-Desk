@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import styles from './CandidateDetail.module.css'
@@ -76,6 +76,33 @@ export function CandidateDetailClient({ candidate, currentUserId, isAdmin }: Pro
     const [newNote, setNewNote] = useState('')
     const [isAddingNote, setIsAddingNote] = useState(false)
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [isAssigning, setIsAssigning] = useState(false)
+    const [recruiters, setRecruiters] = useState<Array<{ id: string; name: string }>>([])
+    const [selectedRecruiter, setSelectedRecruiter] = useState(candidate.recruiter.id)
+
+    const [editForm, setEditForm] = useState({
+        name: candidate.name,
+        email: candidate.email,
+        phone: candidate.phone || '',
+        position: candidate.position || '',
+        experience: candidate.experience?.toString() || '',
+        currentCompany: candidate.currentCompany || '',
+        expectedSalary: candidate.expectedSalary || '',
+    })
+
+    // Fetch recruiters if admin
+    useEffect(() => {
+        if (isAdmin) {
+            fetch('/api/users/recruiters')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.recruiters) setRecruiters(data.recruiters)
+                })
+                .catch(err => console.error('Failed to fetch recruiters:', err))
+        }
+    }, [isAdmin])
 
     // Skills can be either JSON array or comma-separated string
     const parseSkills = (skillsStr: string | null | undefined): string[] => {
@@ -135,7 +162,7 @@ export function CandidateDetailClient({ candidate, currentUserId, isAdmin }: Pro
         setIsUpdatingStatus(true)
         try {
             const response = await fetch(`/api/candidates/${candidate.id}`, {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus }),
             })
@@ -147,6 +174,74 @@ export function CandidateDetailClient({ candidate, currentUserId, isAdmin }: Pro
             console.error('Failed to update status:', error)
         } finally {
             setIsUpdatingStatus(false)
+        }
+    }
+
+    const handleReassign = async () => {
+        if (selectedRecruiter === candidate.recruiter.id) {
+            setIsAssigning(false)
+            return
+        }
+
+        try {
+            // Reusing the PUT endpoint, but we need to ensure the backend supports updating recruiterId
+            // The existing backend PUT updates many fields but not recruiterId. I will need to update the backend too.
+            // Wait, looking at previous backend code... 
+            // The PUT code (Step 3) ONLY updates details, NOT recruiterId.
+            // I should use a specific call or update the PUT to accept recruiterId?
+            // Let's assume I will update the backend to accept 'recruiterId' in PUT.
+
+            const response = await fetch(`/api/candidates/${candidate.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recruiterId: selectedRecruiter }),
+            })
+
+            if (response.ok) {
+                setIsAssigning(false)
+                router.refresh()
+            }
+        } catch (error) {
+            console.error('Failed to reassign candidate:', error)
+        }
+    }
+
+    const handleUpdateCandidate = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try {
+            const response = await fetch(`/api/candidates/${candidate.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editForm),
+            })
+
+            if (response.ok) {
+                setIsEditing(false)
+                router.refresh()
+            }
+        } catch (error) {
+            console.error('Failed to update candidate:', error)
+        }
+    }
+
+    const handleDeleteCandidate = async () => {
+        if (!confirm('Are you sure you want to delete this candidate? This action cannot be undone.')) {
+            return
+        }
+
+        setIsDeleting(true)
+        try {
+            const response = await fetch(`/api/candidates/${candidate.id}`, {
+                method: 'DELETE',
+            })
+
+            if (response.ok) {
+                router.push('/candidates')
+                router.refresh()
+            }
+        } catch (error) {
+            console.error('Failed to delete candidate:', error)
+            setIsDeleting(false)
         }
     }
 
@@ -186,6 +281,20 @@ export function CandidateDetailClient({ candidate, currentUserId, isAdmin }: Pro
                     </p>
                 </div>
                 <div className={styles.headerActions}>
+                    <button
+                        onClick={() => setIsEditing(true)}
+                        className={styles.editButton}
+                        disabled={isUpdatingStatus || isDeleting}
+                    >
+                        Edit
+                    </button>
+                    <button
+                        onClick={handleDeleteCandidate}
+                        className={styles.deleteButton}
+                        disabled={isUpdatingStatus || isDeleting}
+                    >
+                        {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
                     <select
                         className={styles.statusSelect}
                         value={candidate.status}
@@ -203,6 +312,91 @@ export function CandidateDetailClient({ candidate, currentUserId, isAdmin }: Pro
                     </span>
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            {isEditing && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <div className={styles.modalHeader}>
+                            <h2>Edit Candidate</h2>
+                            <button
+                                onClick={() => setIsEditing(false)}
+                                className={styles.modalClose}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateCandidate} className={styles.editForm}>
+                            <div className={styles.formGroup}>
+                                <label>Name</label>
+                                <input
+                                    type="text"
+                                    value={editForm.name}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                                    required
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Email</label>
+                                <input
+                                    type="email"
+                                    value={editForm.email}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                                    required
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Phone</label>
+                                <input
+                                    type="text"
+                                    value={editForm.phone}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Position</label>
+                                <input
+                                    type="text"
+                                    value={editForm.position}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, position: e.target.value }))}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Experience (Years)</label>
+                                <input
+                                    type="number"
+                                    value={editForm.experience}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, experience: e.target.value }))}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Current Company</label>
+                                <input
+                                    type="text"
+                                    value={editForm.currentCompany}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, currentCompany: e.target.value }))}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Expected Salary</label>
+                                <input
+                                    type="text"
+                                    value={editForm.expectedSalary}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, expectedSalary: e.target.value }))}
+                                />
+                            </div>
+                            <div className={styles.modalActions}>
+                                <button type="button" onClick={() => setIsEditing(false)} className={styles.cancelButton}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className={styles.saveButton}>
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <div className={styles.content}>
                 {/* Main Info */}
@@ -260,14 +454,23 @@ export function CandidateDetailClient({ candidate, currentUserId, isAdmin }: Pro
                     {candidate.resumeUrl && (
                         <div className={styles.card}>
                             <h2 className={styles.cardTitle}>Resume</h2>
-                            <a
-                                href={candidate.resumeUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.resumeLink}
-                            >
-                                📄 View Resume
-                            </a>
+                            <div className={styles.resumeActions}>
+                                <a
+                                    href={candidate.resumeUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.resumeLink}
+                                >
+                                    📄 Preview Resume
+                                </a>
+                                <a
+                                    href={candidate.resumeUrl}
+                                    download
+                                    className={styles.resumeDownload}
+                                >
+                                    ⬇️ Download
+                                </a>
+                            </div>
                         </div>
                     )}
 
@@ -312,19 +515,60 @@ export function CandidateDetailClient({ candidate, currentUserId, isAdmin }: Pro
                 <div className={styles.sidebar}>
                     {/* Assigned Recruiter */}
                     <div className={styles.card}>
-                        <h2 className={styles.cardTitle}>Assigned Recruiter</h2>
-                        <div className={styles.recruiterInfo}>
-                            <div className={styles.recruiterAvatar}>
-                                {candidate.recruiter.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <p className={styles.recruiterName}>{candidate.recruiter.name}</p>
-                                <p className={styles.recruiterEmail}>{candidate.recruiter.email}</p>
-                                {candidate.recruiter.department && (
-                                    <p className={styles.recruiterDept}>{candidate.recruiter.department}</p>
-                                )}
-                            </div>
+                        <div className={styles.cardHeader}>
+                            <h2 className={styles.cardTitle}>Assigned Recruiter</h2>
+                            {isAdmin && !isAssigning && (
+                                <button
+                                    onClick={() => setIsAssigning(true)}
+                                    className={styles.changeButton}
+                                >
+                                    Change
+                                </button>
+                            )}
                         </div>
+
+                        {isAssigning ? (
+                            <div className={styles.reassignForm}>
+                                <select
+                                    value={selectedRecruiter}
+                                    onChange={(e) => setSelectedRecruiter(e.target.value)}
+                                    className={styles.recruiterSelect}
+                                >
+                                    {recruiters.map(r => (
+                                        <option key={r.id} value={r.id}>
+                                            {r.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className={styles.reassignActions}>
+                                    <button
+                                        onClick={() => setIsAssigning(false)}
+                                        className={styles.cancelSmallButton}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleReassign}
+                                        className={styles.saveSmallButton}
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={styles.recruiterInfo}>
+                                <div className={styles.recruiterAvatar}>
+                                    {candidate.recruiter.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p className={styles.recruiterName}>{candidate.recruiter.name}</p>
+                                    <p className={styles.recruiterEmail}>{candidate.recruiter.email}</p>
+                                    {candidate.recruiter.department && (
+                                        <p className={styles.recruiterDept}>{candidate.recruiter.department}</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Notes */}

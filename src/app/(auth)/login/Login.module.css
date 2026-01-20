@@ -5,34 +5,41 @@
 
 .leftPanel {
     flex: 1;
-    background: var(--gradient-primary);
+    background: #4F46E5;
+    /* Matches the illustration background for seamless blending */
     padding: var(--spacing-3xl);
     display: flex;
     flex-direction: column;
     justify-content: center;
     position: relative;
     overflow: hidden;
+    color: white;
 }
 
-.leftPanel::before {
-    content: '';
+.illustrationBackground {
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: rotate 30s linear infinite;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.6;
+    /* Adjust opacity to ensure text is readable */
 }
 
-@keyframes rotate {
-    from {
-        transform: rotate(0deg);
-    }
+.bgImage {
+    object-fit: contain;
+    /* or cover, depending on preference */
+    object-position: center;
+}
 
-    to {
-        transform: rotate(360deg);
-    }
+.contentWrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
 }
 
 .branding {
@@ -59,6 +66,7 @@
 .branding h1 {
     font-size: var(--font-size-4xl);
     margin-bottom: var(--spacing-md);
+    color: white;
 }
 
 .branding p {
@@ -66,7 +74,7 @@
     opacity: 0.9;
     line-height: 1.6;
     margin: 0;
-    color: var(--color-text-primary);
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .features {
@@ -103,13 +111,14 @@
 .feature h3 {
     font-size: var(--font-size-md);
     margin-bottom: var(--spacing-xs);
+    color: white;
 }
 
 .feature p {
     font-size: var(--font-size-sm);
-    opacity: 0.8;
+    opacity: 0.9;
     margin: 0;
-    color: var(--color-text-primary);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .rightPanel {

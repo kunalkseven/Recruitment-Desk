@@ -31,6 +31,8 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
     const [recruiters, setRecruiters] = useState(initialRecruiters)
     const [showModal, setShowModal] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
+    const [editingId, setEditingId] = useState<string | null>(null)
     const [error, setError] = useState('')
     const [formData, setFormData] = useState({
         name: '',
@@ -48,26 +50,80 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
         setFormData(prev => ({ ...prev, [name]: value }))
     }
 
+    const handleEditClick = (recruiter: Recruiter) => {
+        setEditingId(recruiter.id)
+        setFormData({
+            name: recruiter.name,
+            email: recruiter.email,
+            password: '', // Password not required for edit unless changing
+            role: recruiter.role,
+            department: recruiter.department || '',
+            phone: recruiter.phone || '',
+        })
+        setShowModal(true)
+    }
+
+    const handleDeleteClick = async (recruiterId: string) => {
+        if (!confirm('Are you sure you want to delete this recruiter? This action cannot be undone.')) {
+            return
+        }
+
+        setDeletingId(recruiterId)
+        try {
+            const response = await fetch(`/api/recruiters/${recruiterId}`, {
+                method: 'DELETE',
+            })
+
+            if (response.ok) {
+                setRecruiters(prev => prev.filter(r => r.id !== recruiterId))
+                router.refresh()
+            } else {
+                const data = await response.json()
+                alert(data.error || 'Failed to delete recruiter')
+            }
+        } catch (error) {
+            console.error('Failed to delete recruiter:', error)
+            alert('Failed to delete recruiter')
+        } finally {
+            setDeletingId(null)
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
         setLoading(true)
 
         try {
-            const response = await fetch('/api/recruiters', {
-                method: 'POST',
+            const url = editingId ? `/api/recruiters/${editingId}` : '/api/recruiters'
+            const method = editingId ? 'PUT' : 'POST'
+
+            // For edits, only send password if it's provided
+            const body = { ...formData }
+            if (editingId && !body.password) {
+                delete (body as any).password
+            }
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(body),
             })
 
             const result = await response.json()
 
             if (!response.ok) {
-                throw new Error(result.error || 'Failed to create recruiter')
+                throw new Error(result.error || `Failed to ${editingId ? 'update' : 'create'} recruiter`)
             }
 
-            setRecruiters(prev => [result.recruiter, ...prev])
+            if (editingId) {
+                setRecruiters(prev => prev.map(r => r.id === editingId ? { ...r, ...result.recruiter } : r))
+            } else {
+                setRecruiters(prev => [result.recruiter, ...prev])
+            }
+
             setShowModal(false)
+            setEditingId(null)
             setFormData({
                 name: '',
                 email: '',
@@ -78,7 +134,7 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
             })
             router.refresh()
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to create recruiter')
+            setError(err instanceof Error ? err.message : `Failed to ${editingId ? 'update' : 'create'} recruiter`)
         } finally {
             setLoading(false)
         }
@@ -120,7 +176,21 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
                     <h1>👔 Recruiters</h1>
                     <p>Manage your recruitment team</p>
                 </div>
-                <button onClick={() => setShowModal(true)} className="btn btn-primary">
+                <button
+                    onClick={() => {
+                        setEditingId(null)
+                        setFormData({
+                            name: '',
+                            email: '',
+                            password: '',
+                            role: 'RECRUITER',
+                            department: '',
+                            phone: '',
+                        })
+                        setShowModal(true)
+                    }}
+                    className="btn btn-primary"
+                >
                     <span>➕</span> Add Recruiter
                 </button>
             </div>
@@ -194,12 +264,29 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
                                 <td>{formatDate(recruiter.createdAt)}</td>
                                 <td>
                                     {recruiter.id !== currentUserId && (
-                                        <button
-                                            onClick={() => toggleActive(recruiter.id, recruiter.isActive)}
-                                            className={`btn btn-sm ${recruiter.isActive ? 'btn-danger' : 'btn-secondary'}`}
-                                        >
-                                            {recruiter.isActive ? 'Deactivate' : 'Activate'}
-                                        </button>
+                                        <div className={styles.actions}>
+                                            <button
+                                                onClick={() => handleEditClick(recruiter)}
+                                                className={styles.iconButton}
+                                                title="Edit"
+                                            >
+                                                ✏️
+                                            </button>
+                                            <button
+                                                onClick={() => toggleActive(recruiter.id, recruiter.isActive)}
+                                                className={`btn btn-sm ${recruiter.isActive ? 'btn-danger' : 'btn-secondary'}`}
+                                            >
+                                                {recruiter.isActive ? 'Deactivate' : 'Activate'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteClick(recruiter.id)}
+                                                className={styles.iconButton}
+                                                title="Delete"
+                                                disabled={deletingId === recruiter.id}
+                                            >
+                                                {deletingId === recruiter.id ? '...' : '🗑️'}
+                                            </button>
+                                        </div>
                                     )}
                                 </td>
                             </tr>
@@ -213,7 +300,7 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
                         <div className={styles.modalHeader}>
-                            <h2>Add New Recruiter</h2>
+                            <h2>{editingId ? 'Edit Recruiter' : 'Add New Recruiter'}</h2>
                             <button onClick={() => setShowModal(false)} className={styles.modalClose}>
                                 ✕
                             </button>
@@ -254,7 +341,9 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label htmlFor="password">Password *</label>
+                                <label htmlFor="password">
+                                    Password {editingId ? '(Leave blank to keep current)' : '*'}
+                                </label>
                                 <input
                                     id="password"
                                     name="password"
@@ -262,7 +351,7 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
                                     value={formData.password}
                                     onChange={handleInputChange}
                                     placeholder="••••••••"
-                                    required
+                                    required={!editingId}
                                     minLength={6}
                                 />
                             </div>
@@ -319,7 +408,7 @@ export function RecruitersClient({ recruiters: initialRecruiters, currentUserId 
                                     disabled={loading}
                                     className="btn btn-primary"
                                 >
-                                    {loading ? 'Creating...' : 'Create Recruiter'}
+                                    {loading ? 'Saving...' : (editingId ? 'Save Changes' : 'Create Recruiter')}
                                 </button>
                             </div>
                         </form>

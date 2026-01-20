@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  name          String
+  password      String
+  role          Role      @default(RECRUITER)
+  avatar        String?
+  phone         String?
+  department    String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  candidates    Candidate[]
+  interviews    Interview[]  @relation("ScheduledBy")
+  panelMember   InterviewPanel[]
+  activities    Activity[]
+  notes         Note[]
+}
+
+model Candidate {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    
+  name          String
+  phone         String?
+  position      String?
+  experience    Int?
+  currentCompany String?
+  expectedSalary String?
+  resumeUrl     String?
+  resumeText    String?
+  skills        String?   // JSON array stored as string
+  status        CandidateStatus @default(APPLIED)
+  source        String?   // Where the candidate came from
+  fingerprint   String?   // For duplicate detection
+  
+  recruiterId   String    @db.ObjectId
+  recruiter     User      @relation(fields: [recruiterId], references: [id])
+  
+  interviews    Interview[]
+  notes         Note[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+  @@index([fingerprint])
+  @@index([recruiterId])
+}
+
+model Interview {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  candidateId   String    @db.ObjectId
+  candidate     Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  
+  scheduledById String    @db.ObjectId
+  scheduledBy   User      @relation("ScheduledBy", fields: [scheduledById], references: [id])
+  
+  scheduledAt   DateTime
+  duration      Int       @default(60) // Duration in minutes
+  type          InterviewType @default(ONLINE_TEST)
+  round         Int       @default(1)
+  location      String?   // Meeting link or physical location
+  notes         String?
+  feedback      String?
+  rating        Int?      // 1-5 rating
+  result        InterviewResult @default(PENDING)
+  
+  // Panel members for L1 and L2 rounds
+  panelMembers  InterviewPanel[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([candidateId])
+  @@index([scheduledById])
+  @@index([scheduledAt])
+}
+
+// Panel members for interview rounds (L1 and L2)
+model InterviewPanel {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  
+  interviewId   String    @db.ObjectId
+  interview     Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  
+  // Either link to existing user or external panel member
+  userId        String?   @db.ObjectId
+  user          User?     @relation(fields: [userId], references: [id])
+  
+  // For external panel members
+  name          String?
+  email         String?
+  designation   String?   // e.g., "Senior Engineer", "Tech Lead"
+  
+  feedback      String?
+  rating        Int?      // 1-5 rating
+  recommendation InterviewResult @default(PENDING)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([interviewId])
+  @@index([userId])
+}
+
+model Note {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  content       String
+  
+  candidateId   String    @db.ObjectId
+  candidate     Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  
+  authorId      String    @db.ObjectId
+  author        User      @relation(fields: [authorId], references: [id])
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([candidateId])
+}
+
+model Activity {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  action        String
+  details       String?
+  entityType    String?   // 'candidate', 'interview', 'user'
+  entityId      String?
+  
+  userId        String    @db.ObjectId
+  user          User      @relation(fields: [userId], references: [id])
+  
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+}
+
+enum Role {
+  SUPER_USER
+  RECRUITER
+}
+
+enum CandidateStatus {
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  HIRED
+  REJECTED
+  ON_HOLD
+}
+
+// Updated interview types for 4 rounds
+enum InterviewType {
+  ONLINE_TEST
+  L1_ROUND
+  L2_ROUND
+  HR_DISCUSSION
+}
+
+enum InterviewResult {
+  PENDING
+  PASS
+  FAIL
+  NO_SHOW
+}

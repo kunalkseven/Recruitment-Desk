@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -11,7 +12,13 @@ export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
+    const [success, setSuccess] = useState('')
     const [loading, setLoading] = useState(false)
+
+    // Check for registration success
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('registered')) {
+        if (!success) setSuccess('Account created successfully. Please sign in.')
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -41,31 +48,44 @@ export default function LoginPage() {
     return (
         <div className={styles.container}>
             <div className={styles.leftPanel}>
-                <div className={styles.branding}>
-                    <div className={styles.logo}>RD</div>
-                    <h1>Recruitment Desk</h1>
-                    <p>Streamline your hiring process with our powerful recruitment management platform.</p>
+                {/* Background Illustration */}
+                <div className={styles.illustrationBackground}>
+                    <Image
+                        src="/login-bg-illustration.png"
+                        alt="Recruitment Background"
+                        fill
+                        className={styles.bgImage}
+                        priority
+                    />
                 </div>
-                <div className={styles.features}>
-                    <div className={styles.feature}>
-                        <span className={styles.featureIcon}>👥</span>
-                        <div>
-                            <h3>Candidate Management</h3>
-                            <p>Track candidates through every stage of the hiring process</p>
-                        </div>
+
+                <div className={styles.contentWrapper}>
+                    <div className={styles.branding}>
+                        <div className={styles.logo}>RD</div>
+                        <h1>Recruitment Desk</h1>
+                        <p>Streamline your hiring process with our powerful recruitment management platform.</p>
                     </div>
-                    <div className={styles.feature}>
-                        <span className={styles.featureIcon}>📋</span>
-                        <div>
-                            <h3>Visual Pipeline</h3>
-                            <p>Kanban-style board to manage your recruitment pipeline</p>
+                    <div className={styles.features}>
+                        <div className={styles.feature}>
+                            <span className={styles.featureIcon}>👥</span>
+                            <div>
+                                <h3>Candidate Management</h3>
+                                <p>Track candidates through every stage of the hiring process</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className={styles.feature}>
-                        <span className={styles.featureIcon}>🔔</span>
-                        <div>
-                            <h3>Duplicate Detection</h3>
-                            <p>Automatic alerts when candidates already exist in the system</p>
+                        <div className={styles.feature}>
+                            <span className={styles.featureIcon}>📋</span>
+                            <div>
+                                <h3>Visual Pipeline</h3>
+                                <p>Kanban-style board to manage your recruitment pipeline</p>
+                            </div>
+                        </div>
+                        <div className={styles.feature}>
+                            <span className={styles.featureIcon}>🔔</span>
+                            <div>
+                                <h3>Duplicate Detection</h3>
+                                <p>Automatic alerts when candidates already exist in the system</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -79,6 +99,11 @@ export default function LoginPage() {
                     </div>
 
                     <form onSubmit={handleSubmit} className={styles.form}>
+                        {success && (
+                            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+                                {success}
+                            </div>
+                        )}
                         {error && (
                             <div className={styles.error}>
                                 <span>⚠️</span>
@@ -146,7 +171,7 @@ export default function LoginPage() {
                         <p>
                             Don&apos;t have an account?{' '}
                             <Link href="/register" className={styles.link}>
-                                Contact your administrator
+                                Create an account
                             </Link>
                         </p>
                     </div>
