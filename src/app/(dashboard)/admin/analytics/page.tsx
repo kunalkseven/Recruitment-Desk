@@ -37,6 +37,7 @@ async function getAnalyticsData() {
         { stage: 'Screening', count: funnelCounts['SCREENING'] || 0, fill: '#8b5cf6' },
         { stage: 'Interview', count: funnelCounts['INTERVIEW'] || 0, fill: '#d946ef' },
         { stage: 'Offer', count: funnelCounts['OFFER'] || 0, fill: '#f59e0b' },
+        { stage: 'Verification', count: funnelCounts['DOCUMENT_VERIFICATION'] || 0, fill: '#fbbf24' },
         { stage: 'Hired', count: funnelCounts['HIRED'] || 0, fill: '#10b981' },
     ]
 

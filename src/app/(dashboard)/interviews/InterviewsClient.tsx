@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { InterviewType, InterviewResult } from '@prisma/client'
+import { InterviewType, InterviewResult } from '@/types'
 import styles from './Interviews.module.css'
 
 interface PanelMember {
@@ -70,6 +70,7 @@ const INTERVIEW_TYPES: { value: InterviewType; label: string; description: strin
     { value: 'ONLINE_TEST', label: 'Online Test', description: 'Technical assessment or aptitude test' },
     { value: 'L1_ROUND', label: 'L1 Round', description: 'First-level technical interview' },
     { value: 'L2_ROUND', label: 'L2 Round', description: 'Second-level technical interview' },
+    { value: 'L3_ROUND', label: 'L3 Round', description: 'Third-level technical interview' },
     { value: 'HR_DISCUSSION', label: 'HR Discussion', description: 'HR round for fitment and offer' },
 ]
 
@@ -119,6 +120,8 @@ export function InterviewsClient({
                 return styles.typeL1
             case 'L2_ROUND':
                 return styles.typeL2
+            case 'L3_ROUND':
+                return styles.typeL3
             case 'HR_DISCUSSION':
                 return styles.typeHR
             default:
@@ -187,7 +190,7 @@ export function InterviewsClient({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    panelMembers: (formData.type === 'L1_ROUND' || formData.type === 'L2_ROUND')
+                    panelMembers: (formData.type === 'L1_ROUND' || formData.type === 'L2_ROUND' || formData.type === 'L3_ROUND')
                         ? panelMembers
                         : [],
                 }),
@@ -220,7 +223,7 @@ export function InterviewsClient({
         }
     }
 
-    const showPanelSection = formData.type === 'L1_ROUND' || formData.type === 'L2_ROUND'
+    const showPanelSection = formData.type === 'L1_ROUND' || formData.type === 'L2_ROUND' || formData.type === 'L3_ROUND'
 
     return (
         <div className={styles.container}>
@@ -477,7 +480,7 @@ export function InterviewsClient({
 
                                     {panelMembers.length === 0 && (
                                         <p className={styles.panelHint}>
-                                            Add panel members who will conduct the {formData.type === 'L1_ROUND' ? 'L1' : 'L2'} interview
+                                            Add panel members who will conduct the {formData.type === 'L1_ROUND' ? 'L1' : formData.type === 'L2_ROUND' ? 'L2' : 'L3'} interview
                                         </p>
                                     )}
 

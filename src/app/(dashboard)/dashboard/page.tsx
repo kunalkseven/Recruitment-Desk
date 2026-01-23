@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { CandidateStatus } from '@/types'
 import { DashboardClient } from './DashboardClient'
 
 async function getDashboardData(userId: string, role: string) {
@@ -12,6 +13,7 @@ async function getDashboardData(userId: string, role: string) {
         screeningCount,
         interviewCount,
         offerCount,
+        docVerificationCount,
         hiredCount,
         rejectedCount,
         onHoldCount,
@@ -24,6 +26,7 @@ async function getDashboardData(userId: string, role: string) {
         prisma.candidate.count({ where: { ...whereClause, status: 'SCREENING' } }),
         prisma.candidate.count({ where: { ...whereClause, status: 'INTERVIEW' } }),
         prisma.candidate.count({ where: { ...whereClause, status: 'OFFER' } }),
+        prisma.candidate.count({ where: { ...whereClause, status: 'DOCUMENT_VERIFICATION' as any } }),
         prisma.candidate.count({ where: { ...whereClause, status: 'HIRED' } }),
         prisma.candidate.count({ where: { ...whereClause, status: 'REJECTED' } }),
         prisma.candidate.count({ where: { ...whereClause, status: 'ON_HOLD' } }),
@@ -70,6 +73,7 @@ async function getDashboardData(userId: string, role: string) {
             screening: screeningCount,
             interview: interviewCount,
             offer: offerCount,
+            docVerification: docVerificationCount,
             hired: hiredCount,
             rejected: rejectedCount,
             onHold: onHoldCount,

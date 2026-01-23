@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CandidateStatus } from '@prisma/client'
+import { CandidateStatus } from '@/types'
 import styles from './Candidates.module.css'
 
 interface Candidate {
@@ -36,6 +36,7 @@ const statusOptions: CandidateStatus[] = [
     'SCREENING',
     'INTERVIEW',
     'OFFER',
+    'DOCUMENT_VERIFICATION',
     'HIRED',
     'REJECTED',
     'ON_HOLD',

@@ -67,6 +67,10 @@
     border-left-color: #a855f7;
 }
 
+.typeL3 {
+    border-left-color: #ec4899;
+}
+
 .typeHR {
     border-left-color: #10b981;
 }
@@ -140,6 +144,10 @@
 
 .typeBadge.typeL2 {
     background: #a855f7;
+}
+
+.typeBadge.typeL3 {
+    background: #ec4899;
 }
 
 .typeBadge.typeHR {

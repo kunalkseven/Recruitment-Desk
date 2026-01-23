@@ -24,6 +24,7 @@ const PIPELINE_COLUMNS: { status: CandidateStatus; label: string; color: string 
     { status: 'SCREENING', label: 'Screening', color: '#8b5cf6' },
     { status: 'INTERVIEW', label: 'Interview', color: '#a855f7' },
     { status: 'OFFER', label: 'Offer', color: '#06b6d4' },
+    { status: 'DOCUMENT_VERIFICATION', label: 'Document Verification', color: '#f59e0b' },
     { status: 'HIRED', label: 'Hired', color: '#10b981' },
     { status: 'REJECTED', label: 'Rejected', color: '#ef4444' },
 ]

@@ -1,10 +1,7 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import bcrypt from 'bcryptjs'
 
-// The database is in the root directory (same as where npm run is executed)
-const adapter = new PrismaBetterSqlite3({ url: 'file:./dev.db' })
-const prisma = new PrismaClient({ adapter })
+const prisma = new PrismaClient()
 
 async function main() {
     console.log('🌱 Starting seed...')
@@ -136,6 +133,19 @@ async function main() {
             source: 'LinkedIn',
             recruiterId: superUser.id,
         },
+        {
+            name: 'Gina Rodriguez',
+            email: 'gina.rodriguez@email.com',
+            phone: '+1 (555) 111-0007',
+            position: 'HR Manager',
+            experience: 8,
+            currentCompany: 'People First',
+            expectedSalary: '$130,000',
+            skills: 'Employee Relations, Recruitment, HRIS',
+            status: 'DOCUMENT_VERIFICATION' as any,
+            source: 'Indeed',
+            recruiterId: recruiter2.id,
+        },
     ]
 
     for (const candidateData of candidates) {
@@ -163,6 +173,12 @@ async function main() {
             {
                 userId: recruiter2.id,
                 action: 'extended offer to candidate',
+                details: 'Carol Chen',
+                entityType: 'candidate',
+            },
+            {
+                userId: recruiter2.id,
+                action: 'moved candidate to DOCUMENT_VERIFICATION',
                 details: 'Carol Chen',
                 entityType: 'candidate',
             },

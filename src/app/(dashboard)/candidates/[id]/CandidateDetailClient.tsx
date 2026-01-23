@@ -59,6 +59,7 @@ const STATUS_LABELS: Record<string, string> = {
     SCREENING: 'Screening',
     INTERVIEW: 'Interview',
     OFFER: 'Offer',
+    DOCUMENT_VERIFICATION: 'Document Verification',
     HIRED: 'Hired',
     REJECTED: 'Rejected',
     ON_HOLD: 'On Hold',
@@ -68,6 +69,7 @@ const INTERVIEW_TYPE_LABELS: Record<string, string> = {
     ONLINE_TEST: 'Online Test',
     L1_ROUND: 'L1 Round',
     L2_ROUND: 'L2 Round',
+    L3_ROUND: 'L3 Round',
     HR_DISCUSSION: 'HR Discussion',
 }
 
@@ -141,6 +143,7 @@ export function CandidateDetailClient({ candidate, currentUserId, isAdmin }: Pro
             SCREENING: styles.statusScreening,
             INTERVIEW: styles.statusInterview,
             OFFER: styles.statusOffer,
+            DOCUMENT_VERIFICATION: styles.statusDocVerification,
             HIRED: styles.statusHired,
             REJECTED: styles.statusRejected,
             ON_HOLD: styles.statusOnHold,

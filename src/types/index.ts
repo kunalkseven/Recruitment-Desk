@@ -1,6 +1,9 @@
-import { Role, CandidateStatus, InterviewType, InterviewResult } from '@prisma/client'
+import { Role, CandidateStatus as PrismaCandidateStatus, InterviewType as PrismaInterviewType, InterviewResult } from '@prisma/client'
 
-export type { Role, CandidateStatus, InterviewType, InterviewResult }
+export type { Role, InterviewResult }
+
+export type CandidateStatus = PrismaCandidateStatus | 'DOCUMENT_VERIFICATION'
+export type InterviewType = PrismaInterviewType | 'L3_ROUND'
 
 export interface User {
     id: string
@@ -105,6 +108,7 @@ export const PIPELINE_STAGES: { status: CandidateStatus; label: string; color: s
     { status: 'SCREENING', label: 'Screening', color: '#8b5cf6' },
     { status: 'INTERVIEW', label: 'Interview', color: '#a855f7' },
     { status: 'OFFER', label: 'Offer', color: '#06b6d4' },
+    { status: 'DOCUMENT_VERIFICATION', label: 'Document Verification', color: '#f59e0b' },
     { status: 'HIRED', label: 'Hired', color: '#10b981' },
     { status: 'REJECTED', label: 'Rejected', color: '#ef4444' },
     { status: 'ON_HOLD', label: 'On Hold', color: '#f59e0b' },
