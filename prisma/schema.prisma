@@ -3,11 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   email         String    @unique
   name          String
   password      String
@@ -27,7 +28,7 @@ model User {
 }
 
 model Candidate {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   email         String    
   name          String
   phone         String?
@@ -42,7 +43,7 @@ model Candidate {
   source        String?   // Where the candidate came from
   fingerprint   String?   // For duplicate detection
   
-  recruiterId   String
+  recruiterId   String    @db.ObjectId
   recruiter     User      @relation(fields: [recruiterId], references: [id])
   
   interviews    Interview[]
@@ -57,11 +58,11 @@ model Candidate {
 }
 
 model Interview {
-  id            String    @id @default(cuid())
-  candidateId   String
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  candidateId   String    @db.ObjectId
   candidate     Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   
-  scheduledById String
+  scheduledById String    @db.ObjectId
   scheduledBy   User      @relation("ScheduledBy", fields: [scheduledById], references: [id])
   
   scheduledAt   DateTime
@@ -87,13 +88,13 @@ model Interview {
 
 // Panel members for interview rounds (L1 and L2)
 model InterviewPanel {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   
-  interviewId   String
+  interviewId   String    @db.ObjectId
   interview     Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
   
   // Either link to existing user or external panel member
-  userId        String?
+  userId        String?   @db.ObjectId
   user          User?     @relation(fields: [userId], references: [id])
   
   // For external panel members
@@ -113,13 +114,13 @@ model InterviewPanel {
 }
 
 model Note {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   content       String
   
-  candidateId   String
+  candidateId   String    @db.ObjectId
   candidate     Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   
-  authorId      String
+  authorId      String    @db.ObjectId
   author        User      @relation(fields: [authorId], references: [id])
   
   createdAt     DateTime  @default(now())
@@ -129,13 +130,13 @@ model Note {
 }
 
 model Activity {
-  id            String    @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   action        String
   details       String?
   entityType    String?   // 'candidate', 'interview', 'user'
   entityId      String?
   
-  userId        String
+  userId        String    @db.ObjectId
   user          User      @relation(fields: [userId], references: [id])
   
   createdAt     DateTime  @default(now())
