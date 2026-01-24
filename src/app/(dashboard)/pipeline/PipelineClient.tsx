@@ -33,9 +33,40 @@ export function PipelineClient({ candidates: initialCandidates }: PipelineClient
     const [candidates, setCandidates] = useState(initialCandidates)
     const [draggedCandidate, setDraggedCandidate] = useState<string | null>(null)
     const [dragOverColumn, setDragOverColumn] = useState<CandidateStatus | null>(null)
+    const [selectedMonth, setSelectedMonth] = useState<string>('all')
+
+    // Generate last 12 months for filter options
+    const getMonthOptions = () => {
+        const options: { value: string; label: string }[] = [{ value: 'all', label: 'All Time' }]
+        const now = new Date()
+
+        for (let i = 0; i < 12; i++) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+            const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+            const label = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+            options.push({ value, label })
+        }
+
+        return options
+    }
+
+    const monthOptions = getMonthOptions()
+
+    // Filter candidates by selected month
+    const getFilteredCandidates = () => {
+        if (selectedMonth === 'all') return candidates
+
+        const [year, month] = selectedMonth.split('-').map(Number)
+        return candidates.filter(c => {
+            const date = new Date(c.updatedAt)
+            return date.getFullYear() === year && date.getMonth() + 1 === month
+        })
+    }
+
+    const filteredCandidates = getFilteredCandidates()
 
     const getCandidatesByStatus = (status: CandidateStatus) => {
-        return candidates.filter(c => c.status === status)
+        return filteredCandidates.filter(c => c.status === status)
     }
 
     const handleDragStart = (e: React.DragEvent, candidateId: string) => {
@@ -119,10 +150,33 @@ export function PipelineClient({ candidates: initialCandidates }: PipelineClient
                     <h1>Pipeline</h1>
                     <p>Drag and drop candidates between stages</p>
                 </div>
-                <Link href="/candidates/new" className="btn btn-primary">
-                    <span>➕</span> Add Candidate
-                </Link>
+                <div className={styles.headerActions}>
+                    <div className={styles.monthFilter}>
+                        <label htmlFor="monthFilter">📅 Filter by Month:</label>
+                        <select
+                            id="monthFilter"
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            className={styles.monthSelect}
+                        >
+                            {monthOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <Link href="/candidates/new" className="btn btn-primary">
+                        <span>➕</span> Add Candidate
+                    </Link>
+                </div>
             </div>
+
+            {selectedMonth !== 'all' && (
+                <div className={styles.filterInfo}>
+                    Showing {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''} updated in {monthOptions.find(m => m.value === selectedMonth)?.label}
+                </div>
+            )}
 
             <div className={styles.pipeline}>
                 {PIPELINE_COLUMNS.map(column => {

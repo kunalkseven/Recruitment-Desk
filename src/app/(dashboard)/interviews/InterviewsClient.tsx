@@ -86,6 +86,8 @@ export function InterviewsClient({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'all'>('upcoming')
+    const [editingInterview, setEditingInterview] = useState<Interview | null>(null)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
 
     const [formData, setFormData] = useState({
         candidateId: '',
@@ -157,7 +159,10 @@ export function InterviewsClient({
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ) => {
         const { name, value } = e.target
-        setFormData((prev) => ({ ...prev, [name]: value }))
+        setFormData((prev) => ({
+            ...prev,
+            [name]: name === 'duration' ? parseInt(value, 10) : value,
+        }))
     }
 
     const addPanelMember = (type: 'internal' | 'external') => {
@@ -179,16 +184,99 @@ export function InterviewsClient({
         )
     }
 
+    const openEditModal = (interview: Interview) => {
+        setEditingInterview(interview)
+        setFormData({
+            candidateId: interview.candidate.id,
+            type: interview.type,
+            scheduledAt: new Date(interview.scheduledAt).toISOString().slice(0, 16),
+            duration: interview.duration,
+            location: interview.location || '',
+            notes: interview.notes || '',
+        })
+        setPanelMembers(
+            interview.panelMembers.map((pm) =>
+                pm.userId
+                    ? { type: 'internal' as const, userId: pm.userId }
+                    : { type: 'external' as const, name: pm.name || '', email: pm.email || '', designation: pm.designation || '' }
+            )
+        )
+        setShowModal(true)
+    }
+
+    const closeModal = () => {
+        setShowModal(false)
+        setEditingInterview(null)
+        setFormData({
+            candidateId: '',
+            type: 'ONLINE_TEST',
+            scheduledAt: '',
+            duration: 60,
+            location: '',
+            notes: '',
+        })
+        setPanelMembers([])
+        setError('')
+    }
+
+    // Handle delete interview
+    const handleDelete = async (interviewId: string, candidateName: string) => {
+        if (!confirm(`Are you sure you want to delete the interview with ${candidateName}? This action cannot be undone.`)) {
+            return
+        }
+
+        setDeletingId(interviewId)
+
+        try {
+            const response = await fetch(`/api/interviews?id=${interviewId}`, {
+                method: 'DELETE',
+            })
+
+            if (!response.ok) {
+                const result = await response.json()
+                throw new Error(result.error || 'Failed to delete interview')
+            }
+
+            // Remove from local state
+            setInterviews((prev) => prev.filter((i) => i.id !== interviewId))
+            router.refresh()
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Failed to delete interview')
+        } finally {
+            setDeletingId(null)
+        }
+    }
+
+    // Get minimum datetime (now) for date picker
+    const getMinDateTime = () => {
+        const now = new Date()
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+        return now.toISOString().slice(0, 16)
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
+
+        // Client-side validation for past dates
+        const scheduledDate = new Date(formData.scheduledAt)
+        if (scheduledDate < new Date()) {
+            setError('Cannot schedule interview in the past')
+            return
+        }
+
         setLoading(true)
 
         try {
-            const response = await fetch('/api/interviews', {
-                method: 'POST',
+            const isEditing = !!editingInterview
+            const url = '/api/interviews'
+            const method = isEditing ? 'PUT' : 'POST'
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    ...(isEditing && { id: editingInterview.id }),
                     ...formData,
                     panelMembers: (formData.type === 'L1_ROUND' || formData.type === 'L2_ROUND' || formData.type === 'L3_ROUND')
                         ? panelMembers
@@ -199,25 +287,22 @@ export function InterviewsClient({
             const result = await response.json()
 
             if (!response.ok) {
-                throw new Error(result.error || 'Failed to schedule interview')
+                throw new Error(result.error || (isEditing ? 'Failed to update interview' : 'Failed to schedule interview'))
             }
 
-            setShowModal(false)
-            setFormData({
-                candidateId: '',
-                type: 'ONLINE_TEST',
-                scheduledAt: '',
-                duration: 60,
-                location: '',
-                notes: '',
-            })
-            setPanelMembers([])
+            closeModal()
             router.refresh()
 
-            // Optimistic update
-            setInterviews((prev) => [...prev, result.interview])
+            // Update interviews list
+            if (isEditing) {
+                setInterviews((prev) =>
+                    prev.map((i) => (i.id === result.interview.id ? result.interview : i))
+                )
+            } else {
+                setInterviews((prev) => [...prev, result.interview])
+            }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to schedule interview')
+            setError(err instanceof Error ? err.message : (editingInterview ? 'Failed to update interview' : 'Failed to schedule interview'))
         } finally {
             setLoading(false)
         }
@@ -340,6 +425,23 @@ export function InterviewsClient({
                                 <span className={styles.scheduledBy}>
                                     Scheduled by {interview.scheduledBy.name}
                                 </span>
+                                {new Date(interview.scheduledAt) >= now && (
+                                    <div className={styles.footerActions}>
+                                        <button
+                                            onClick={() => openEditModal(interview)}
+                                            className="btn btn-sm btn-secondary"
+                                        >
+                                            ✏️ Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(interview.id, interview.candidate.name)}
+                                            className="btn btn-sm btn-danger"
+                                            disabled={deletingId === interview.id}
+                                        >
+                                            {deletingId === interview.id ? 'Deleting...' : '🗑️ Delete'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -360,8 +462,8 @@ export function InterviewsClient({
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
                         <div className={styles.modalHeader}>
-                            <h2>Schedule Interview</h2>
-                            <button onClick={() => setShowModal(false)} className={styles.modalClose}>
+                            <h2>{editingInterview ? 'Edit Interview' : 'Schedule Interview'}</h2>
+                            <button onClick={closeModal} className={styles.modalClose}>
                                 ✕
                             </button>
                         </div>
@@ -382,6 +484,7 @@ export function InterviewsClient({
                                     value={formData.candidateId}
                                     onChange={handleInputChange}
                                     required
+                                    disabled={!!editingInterview}
                                 >
                                     <option value="">Select a candidate</option>
                                     {candidates.map((c) => (
@@ -423,6 +526,7 @@ export function InterviewsClient({
                                         name="scheduledAt"
                                         value={formData.scheduledAt}
                                         onChange={handleInputChange}
+                                        min={getMinDateTime()}
                                         required
                                     />
                                 </div>
@@ -550,13 +654,15 @@ export function InterviewsClient({
                             <div className={styles.modalActions}>
                                 <button
                                     type="button"
-                                    onClick={() => setShowModal(false)}
+                                    onClick={closeModal}
                                     className="btn btn-secondary"
                                 >
                                     Cancel
                                 </button>
                                 <button type="submit" disabled={loading} className="btn btn-primary">
-                                    {loading ? 'Scheduling...' : 'Schedule Interview'}
+                                    {loading
+                                        ? (editingInterview ? 'Updating...' : 'Scheduling...')
+                                        : (editingInterview ? 'Update Interview' : 'Schedule Interview')}
                                 </button>
                             </div>
                         </form>

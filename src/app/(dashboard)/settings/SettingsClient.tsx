@@ -1,6 +1,7 @@
 'use client'
 
 import { useTheme } from 'next-themes'
+import { useSession } from 'next-auth/react'
 import { User } from 'next-auth'
 import styles from './Settings.module.css'
 import { useEffect, useState } from 'react'
@@ -11,9 +12,11 @@ interface SettingsClientProps {
 
 export default function SettingsClient({ user }: SettingsClientProps) {
     const { theme, setTheme } = useTheme()
+    const { update } = useSession()
     const [mounted, setMounted] = useState(false)
     const [name, setName] = useState(user.name || '')
     const [department, setDepartment] = useState(user.department || '')
+    const [phone, setPhone] = useState(user.phone || '')
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -37,6 +40,9 @@ export default function SettingsClient({ user }: SettingsClientProps) {
                 throw new Error('Failed to save')
             }
 
+            // Update session
+            await update({ name, department, phone })
+
             setMessage({ type: 'success', text: 'Profile updated successfully!' })
         } catch {
             setMessage({ type: 'error', text: 'Failed to update profile' })
@@ -48,6 +54,7 @@ export default function SettingsClient({ user }: SettingsClientProps) {
     const handleCancel = () => {
         setName(user.name || '')
         setDepartment(user.department || '')
+        setPhone(user.phone || '')
         setMessage(null)
     }
 
@@ -128,6 +135,17 @@ export default function SettingsClient({ user }: SettingsClientProps) {
                             value={department}
                             onChange={(e) => setDepartment(e.target.value)}
                             placeholder="Engineering"
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Phone Number</label>
+                        <input
+                            type="text"
+                            className="form-input"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+1 (555) 000-0000"
                         />
                     </div>
 
